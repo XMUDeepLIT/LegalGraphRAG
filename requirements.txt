@@ -1,0 +1,16 @@
+# Core dependencies
+torch>=2.0.0
+transformers>=4.30.0
+numpy>=1.24.0
+scipy>=1.10.0
+networkx>=3.0
+tqdm>=4.65.0
+requests>=2.28.0
+python-dotenv>=1.0.0
+
+# OpenAI API client (for DeepSeek, GPT-4o-mini)
+openai>=1.0.0
+
+# Optional: For better performance with transformers
+# accelerate>=0.20.0
+# bitsandbytes>=0.39.0  # For quantization (optional)
