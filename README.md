@@ -1,137 +1,93 @@
-# LegalGraphRAG: Multi-Agent Graph Retrieval-Augmented Generation for Reliable Legal Reasoning
+# **LegalGraphRAG: Multi-Agent Graph Retrieval-Augmented Generation for Reliable Legal Reasoning**
 
-Code repository for paper: LegalGraphRAG: Multi-Agent Graph Retrieval-Augmented Generation for Reliable Legal Reasoning
+> An evaluation framework for legal judgment prediction that integrates multi-agent graph retrieval and supports reproducible comparisons across multiple models and baselines.
 
-This repository provides an evaluation framework for **Legal Judgement Prediction tasks** using the **LegalGraphRAG** method, with comparisons to several baseline approaches.
+<p align="center">
+  <a href="https://www.researchgate.net/publication/403734810_LegalGraphRAG_Multi-Agent_Graph_Retrieval-Augmented_Generation_for_Reliable_Legal_Reasoning" target="_blank">
+    <img src="https://img.shields.io/badge/Paper-ResearchGate-blue?style=flat-square" alt="Paper">
+  </a>
+  <a href="https://github.com/DEEP-PolyU/LegalGraphRAG" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-Project-181717?logo=github&style=flat-square" alt="GitHub">
+  </a>
+</p>
 
-![framework](images/method.png)
+---
 
-## Features
+## 🚀 **Highlights**
+- ✅ **Automated Evaluation**: Computes `Accuracy (Acc)` and `Micro-F1` automatically for legal judgment prediction tasks.
+- ✅ **Multi-Model Support**: Supports Qwen, DeepSeek, GPT, InternLM, GLM, Gemma, and more.
+- ✅ **Dataset Coverage**: Includes legal datasets such as CAIL and CMDL.
+- ✅ **Baseline Comparison**: Enables direct comparison with `HippoRAG2`, `RAPTOR`, `LightRAG`, `LegalΔ`, and `ADAPT`.
 
-- **Automated Evaluation**
-  Computes **Accuracy (Acc)** and **Micro-F1** automatically.
+<p align="center">
+  <img src="images/method.png" width="95%" alt="Framework Overview">
+</p>
 
-- **Multi-model Support**
-  Works with **Qwen**, **DeepSeek**, **GPT**, **Internlm**, **GLM**, **Gemma**, and other open-source LLMs.
+---
 
-- **Dataset Coverage**
-  Includes benchmarks such as **CAIL** and **CMDL**.
+## 🧩 **Project Structure**
 
-- **Multiple Baselines**
-  Supports comparisons with `HippoRAG2`, `RAPTOR`, `LightRAG`, `Legal$\Delta$`, `ADAPT`, etc.
-
-## Project Structure
-
-```
+```text
 LegalGraphRAG/
 ├── core/                      # Core modules
 │   ├── LegalGraphRAG.py       # Main LegalGraphRAG class
 │   ├── models/                # Model implementations
-│   │   ├── transformers/      # Transformers-based models (Qwen, Internlm, GLM, Gemma)
-│   │   └── openai/           # OpenAI-compatible models (DeepSeek, GPT)
+│   │   ├── transformers/      # Transformers-based models (Qwen, InternLM, GLM, Gemma)
+│   │   └── openai/            # OpenAI-compatible models (DeepSeek, GPT)
 │   ├── graph_construct/       # Graph construction and management
-│   ├── judge/                # Legal judgment modules
-│   ├── preprocess/           # Data preprocessing
-│   ├── prompt/               # Prompt templates
-│   └── utils/                # Utility functions
+│   ├── judge/                 # Legal judgment modules
+│   ├── preprocess/            # Data preprocessing
+│   ├── prompt/                # Prompt templates
+│   └── utils/                 # Utility functions
 ├── run.py                     # Main evaluation script
-├── env.example               # Configuration file template
-└── README.md                 # This file
+├── env.example                # Configuration file template
+└── README.md                  # Project documentation
 ```
 
-## Key Components
+---
 
-- **LegalGraphRAG**
-  The main class for legal case analysis. It:
+## 🛠️ **Usage**
 
-  1. Builds and manages a knowledge graph from legal cases
-  2. Processes legal cases with multi-agent reasoning
-  3. Performs legal judgment prediction (crime classification, law article retrieval, etc.)
-  4. Computes evaluation metrics (Accuracy, Micro-F1)
-  5. Saves detailed results to JSON
+### 1️⃣ Environment Setup
 
-- **Metrics**
+```bash
+# Copy and configure environment file
+cp env.example .env
+# Edit .env with model paths, API keys, and runtime settings
+```
 
-  - `Accuracy (Acc)`: Overall classification accuracy
-  - `Micro-F1`: Micro-averaged F1 score across all classes
+### 2️⃣ Prepare Data
 
-## Supported Datasets
+- Place datasets under `datasets/` (or pass a custom dataset directory).
+- Follow filename format: `crime_data_{dataset}_small.json`.
+- Supported datasets:
+  - `CAIL` (Chinese AI and Law Challenge)
+  - `CMDL` (Chinese Multi-Domain Legal Dataset)
 
-- **CAIL** (Chinese AI and Law Challenge)
-- **CMDL** (Chinese Multi-Domain Legal Dataset)
+### 3️⃣ Run Evaluation
 
-Dataset files should be placed under the datasets directory with the naming format: `crime_data_{dataset}_small.json`
+```bash
+python run.py --model qwen3 --datasets CAIL --devices cuda:2 cuda:3
+```
 
-## Supported Models
+**Main arguments**
 
-- **Qwen3-8B**
-- **Qwen2.5-7B-Instruct**
-- **DeepSeek-V3**
-- **GPT-4o-mini**
-- **Internlm3**
-- **GLM-4**
+- `--model`: `qwen3`, `qwen2_5`, `gemma3`, `internlm3`, `glm4`, `deepseek_v3`, `gpt4o_mini`
+- `--datasets`: dataset name, e.g. `CAIL`, `CMDL`
+- `--dotenv_path`: path to `.env` (default: `.env`)
+- `--datasets_path`: path to datasets (default: `../datasets`)
+- `--devices`: GPU devices, e.g. `cuda:0 cuda:1`
+- `--no-build-graph`: skip graph construction when graph already exists
+- `--force-rebuild`: force graph rebuild even if artifacts already exist
 
-Model configurations are defined in `core/models/` and can be extended easily.
+### 4️⃣ Output Files
 
-## Baselines
+- Prediction outputs:
+  - `{output_dir}/{dataset}/{model}_results_combined.json`
+- Statistics:
+  - `{output_dir}/{dataset}/{model}_stats.json`
 
-The framework supports comparison with the following baseline methods:
-
-- **HippoRAG2**
-- **RAPTOR**
-- **LightRAG**
-- **Legal**$\Delta$
-- **ADAPT**
-
-## Usage
-
-1. **Setup environment**
-
-   ```bash
-   # Copy and configure environment file
-   cp env.example .env
-   # Edit .env with your configuration (model paths, API keys, etc.)
-   ```
-
-2. **Prepare data**
-
-   - Place datasets under `datasets/` (or specify custom path)
-   - Dataset files should follow the format: `crime_data_{dataset}_small.json`
-
-3. **Run evaluation**
-
-   ```bash
-   python run.py --model qwen3 --datasets CAIL --devices cuda:2 cuda:3
-   ```
-
-   **Arguments:**
-
-   - `--model`: Model to use (`qwen3`, `qwen2_5`, `gemma3`, `internlm3`, `glm4`, `deepseek_v3`, `gpt4o_mini`)
-   - `--datasets`: Dataset name (e.g., `CAIL`, `CMDL`)
-   - `--dotenv_path`: Path to .env file (default: `.env`)
-   - `--datasets_path`: Path to datasets directory (default: `../datasets`)
-   - `--devices`: GPU devices to use (e.g., `cuda:2 cuda:3`)
-   - `--no-build-graph`: Skip graph construction (assume graph already exists)
-   - `--force-rebuild`: Force rebuild graph even if it already exists
-
-4. **Results**
-
-   - Results are saved to:
-     ```
-     {output_dir}/{dataset}/{model}_results_combined.json
-     ```
-   - Statistics are saved to:
-     ```
-     {output_dir}/{dataset}/{model}_stats.json
-     ```
-
-   Each result file includes:
-
-   - Case-level predictions (crime classification, law articles, etc.)
-   - Overall metrics (Accuracy, Micro-F1)
-   - Processing statistics
-
-Example output structure:
+Example output summary:
 
 ```json
 {
@@ -144,22 +100,47 @@ Example output structure:
 }
 ```
 
-## Configuration
+---
 
-Configuration is managed through the `.env` file. Key settings include:
+## ⚙️ **Configuration**
 
-- **Model Configuration**: Model name, device, API keys, generation parameters
-- **Data Configuration**: Dataset paths, output directory
-- **Graph Configuration**: Graph construction and retrieval parameters
+Configuration is managed via `.env`. Key groups include:
 
-See `env.example` for all available configuration options.
+- **Model Configuration**: model names, devices, API keys, generation parameters
+- **Data Configuration**: dataset paths and output directory
+- **Graph Configuration**: graph construction and retrieval settings
 
-## Multi-GPU Support
+See `env.example` for the full configuration list.
 
-The framework supports parallel processing across multiple GPUs. Simply specify multiple devices:
+---
+
+## 🎯 **Supported Models and Baselines**
+
+**Models**
+
+- Qwen3-8B
+- Qwen2.5-7B-Instruct
+- DeepSeek-V3
+- GPT-4o-mini
+- InternLM3
+- GLM-4
+
+**Baselines**
+
+- HippoRAG2
+- RAPTOR
+- LightRAG
+- LegalΔ
+- ADAPT
+
+---
+
+## ⚡ **Multi-GPU Execution**
+
+Run on multiple GPUs by passing several devices:
 
 ```bash
 python run.py --model qwen3 --datasets CAIL --devices cuda:0 cuda:1 cuda:2 cuda:3
 ```
 
-Cases will be automatically distributed across the specified devices for efficient processing.
+Cases are automatically distributed across the selected devices.
