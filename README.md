@@ -2,14 +2,14 @@
 
 > An evaluation framework for legal judgment prediction that integrates multi-agent graph retrieval and supports reproducible comparisons across multiple models and baselines.
 
-<p align="center">
+<!-- <p align="center">
   <a href="https://www.researchgate.net/publication/403734810_LegalGraphRAG_Multi-Agent_Graph_Retrieval-Augmented_Generation_for_Reliable_Legal_Reasoning" target="_blank">
     <img src="https://img.shields.io/badge/Paper-ResearchGate-blue?style=flat-square" alt="Paper">
   </a>
   <a href="https://github.com/DEEP-PolyU/LegalGraphRAG" target="_blank">
     <img src="https://img.shields.io/badge/GitHub-Project-181717?logo=github&style=flat-square" alt="GitHub">
   </a>
-</p>
+</p> -->
 
 ---
 
