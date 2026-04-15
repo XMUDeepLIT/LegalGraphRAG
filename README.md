@@ -144,3 +144,16 @@ python run.py --model qwen3 --datasets CAIL --devices cuda:0 cuda:1 cuda:2 cuda:
 ```
 
 Cases are automatically distributed across the selected devices.
+
+## 📃 Citation
+
+```
+@inproceedings{inproceedings,
+author = {Chen, Zerui and Zhang, Qinggang and Xiang, Zhishang and Wei, Zhimin and Gao, Linfeng and Huang, Xiao and Zhang, Zhihong and Su, Jinsong},
+year = {2026},
+month = {04},
+pages = {},
+title = {LegalGraphRAG: Multi-Agent Graph Retrieval-Augmented Generation for Reliable Legal Reasoning}
+}
+```
+
