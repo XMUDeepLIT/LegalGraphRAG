@@ -39,6 +39,9 @@ LegalGraphRAG/
 │   ├── preprocess/            # Data preprocessing
 │   ├── prompt/                # Prompt templates
 │   └── utils/                 # Utility functions
+├── scripts/                   # Data preparation scripts
+├── raw_data/                  # User-provided source files for preprocessing
+├── datas/                     # Generated preprocessing outputs
 ├── run.py                     # Main evaluation script
 ├── env.example                # Configuration file template
 └── README.md                  # Project documentation
@@ -51,18 +54,41 @@ LegalGraphRAG/
 ### 1️⃣ Environment Setup
 
 ```bash
+# Install dependencies
+pip install -r requirements.txt
+
 # Copy and configure environment file
 cp env.example .env
 # Edit .env with model paths, API keys, and runtime settings
 ```
 
-### 2️⃣ Prepare Data
+### 2️⃣ Data Preparation (CAIL Example)
 
-- Place datasets under `datasets/` (or pass a custom dataset directory).
-- Follow filename format: `crime_data_{dataset}_small.json`.
-- Supported datasets:
-  - `CAIL` (Chinese AI and Law Challenge)
-  - `CMDL` (Chinese Multi-Domain Legal Dataset)
+Put these source files under `./raw_data/`:
+
+- `final_test.json`: raw CAIL case records used to build the case corpus.
+- `law_to_crime.json`: base mapping from law article ids to candidate crimes.
+- `criminal_law_processed.json`: structured criminal law articles (article id + item texts).
+- `judicial_explanations.json`: judicial interpretation snippets linked to law article ids.
+- `law_corpus.jsonl`: full law text corpus used as fallback when law text is missing.
+
+Use one command to prepare all required data:
+
+```bash
+python scripts/prepare_data.py --dotenv-path .env --raw-data-dir ./raw_data
+```
+
+This pipeline does four things in order:
+
+- Builds sampled CAIL cases from raw records.
+- Uses an LLM to extract structured case features.
+- Uses an LLM to generate law judgment dependency hints.
+- Merges law resources into final project-ready law mapping data.
+
+After these steps, make sure both files exist:
+
+- `datas/cases_with_feature.json`
+- `datas/law_to_crime.json`
 
 ### 3️⃣ Run Evaluation
 
@@ -114,9 +140,7 @@ See `env.example` for the full configuration list.
 
 ---
 
-## 🎯 **Supported Models and Baselines**
-
-**Models**
+## 🎯 **Supported Models**
 
 - Qwen3-8B
 - Qwen2.5-7B-Instruct
@@ -124,14 +148,6 @@ See `env.example` for the full configuration list.
 - GPT-4o-mini
 - InternLM3
 - GLM-4
-
-**Baselines**
-
-- HippoRAG2
-- RAPTOR
-- LightRAG
-- LegalΔ
-- ADAPT
 
 ---
 
