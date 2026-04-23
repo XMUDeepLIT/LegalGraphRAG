@@ -11,7 +11,7 @@ class DeepSeekChatbot(OpenAIBaseModel):
         model_name: str = "deepseek-chat",
         device: str = "cuda:0",
         api_key: Optional[str] = None,
-        base_url: str = "http://localhost:8000/v1"
+        base_url: str = "https://api.deepseek.com/v1"
     ):
         """
         Initialize DeepSeek model
@@ -20,7 +20,7 @@ class DeepSeekChatbot(OpenAIBaseModel):
             model_name: Model name, default is "deepseek-chat"
             device: Device (not used for OpenAI type, kept for interface consistency)
             api_key: API key, if None then get from environment variable DEEPSEEK_API_KEY
-            base_url: API base URL, default is local server
+            base_url: API base URL, default is https://api.deepseek.com/v1
         """
         super().__init__(
             model_name=model_name,

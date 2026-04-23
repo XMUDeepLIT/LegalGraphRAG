@@ -11,7 +11,7 @@ class GPT4OMiniChatbot(OpenAIBaseModel):
         model_name: str = "gpt-4o-mini",
         device: str = "cuda:0",
         api_key: Optional[str] = None,
-        base_url: str = "https://fast.ominiai.cn/v1"
+        base_url: str = "https://api.openai.com/v1"
     ):
         """
         Initialize GPT-4o Mini model
@@ -20,7 +20,7 @@ class GPT4OMiniChatbot(OpenAIBaseModel):
             model_name: Model name, default is "gpt-4o-mini"
             device: Device (not used for OpenAI type, kept for interface consistency)
             api_key: API key, if None then get from environment variable OPENAI_API_KEY
-            base_url: API base URL
+            base_url: API base URL, default is https://api.openai.com/v1
         """
         super().__init__(
             model_name=model_name,
