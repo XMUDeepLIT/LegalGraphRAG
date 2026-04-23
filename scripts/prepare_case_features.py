@@ -26,12 +26,12 @@ JSON格式要求：
 - 键名必须为： "defendant_info"、"criminal_acts"、"victim_property_details"、"intent_remorse"。
 
 输出示例（仅供参考，实际输出应基于输入内容）：
-{
+{{
 "defendant_info": ["成年人", "有前科", "国家工作人员"],
 "criminal_acts": ["盗窃", "入户"],
 "victim_property_details": ["私人住宅", "数额较大"],
 "intent_remorse": ["直接故意", "自首"]
-}
+}}
 
 请确保只输出JSON对象。
 现在请你处理以下案件：

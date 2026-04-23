@@ -20,7 +20,7 @@ class GPT4OMiniChatbot(OpenAIBaseModel):
             model_name: Model name, default is "gpt-4o-mini"
             device: Device (not used for OpenAI type, kept for interface consistency)
             api_key: API key, if None then get from environment variable OPENAI_API_KEY
-            base_url: API base URL, default is https://api.openai.com/v1
+            base_url: API base URL, default is OpenAI API
         """
         super().__init__(
             model_name=model_name,

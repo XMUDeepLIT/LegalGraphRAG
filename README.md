@@ -81,6 +81,7 @@ python scripts/prepare_data.py --dotenv-path .env --raw-data-dir ./raw_data
 This pipeline does four things in order:
 
 - Builds sampled CAIL cases from raw records.
+- Generates evaluation input file under `datasets/`.
 - Uses an LLM to extract structured case features.
 - Uses an LLM to generate law judgment dependency hints.
 - Merges law resources into final project-ready law mapping data.
@@ -88,6 +89,7 @@ This pipeline does four things in order:
 After these steps, make sure both files exist:
 
 - `datas/cases_with_feature.json`
+- `datasets/crime_data_CAIL_small.json`
 - `datas/law_to_crime.json`
 
 ### 3️⃣ Run Evaluation
@@ -101,7 +103,7 @@ python run.py --model qwen3 --datasets CAIL --devices cuda:2 cuda:3
 - `--model`: `qwen3`, `qwen2_5`, `gemma3`, `internlm3`, `glm4`, `deepseek_v3`, `gpt4o_mini`
 - `--datasets`: dataset name, e.g. `CAIL`, `CMDL`
 - `--dotenv_path`: path to `.env` (default: `.env`)
-- `--datasets_path`: path to datasets (default: `../datasets`)
+- `--datasets_path`: path to datasets (default: `./datasets`)
 - `--devices`: GPU devices, e.g. `cuda:0 cuda:1`
 - `--no-build-graph`: skip graph construction when graph already exists
 - `--force-rebuild`: force graph rebuild even if artifacts already exist
@@ -160,16 +162,3 @@ python run.py --model qwen3 --datasets CAIL --devices cuda:0 cuda:1 cuda:2 cuda:
 ```
 
 Cases are automatically distributed across the selected devices.
-
-## 📃 Citation
-
-```
-@inproceedings{inproceedings,
-author = {Chen, Zerui and Zhang, Qinggang and Xiang, Zhishang and Wei, Zhimin and Gao, Linfeng and Huang, Xiao and Zhang, Zhihong and Su, Jinsong},
-year = {2026},
-month = {04},
-pages = {},
-title = {LegalGraphRAG: Multi-Agent Graph Retrieval-Augmented Generation for Reliable Legal Reasoning}
-}
-```
-

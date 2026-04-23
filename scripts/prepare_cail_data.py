@@ -83,17 +83,37 @@ def main() -> None:
         default="./datas/cases_with_feature.json",
         help="Output path for case database used by LegalGraphRAG.",
     )
+    parser.add_argument(
+        "--dataset-output",
+        type=str,
+        default="./datasets/crime_data_CAIL_small.json",
+        help="Output path for evaluation dataset file.",
+    )
     args = parser.parse_args()
 
     raw_cases = list(load_cail_jsonl(args.input))
     sampled_cases = sample_cases_per_charge(raw_cases, args.max_per_charge)
 
-    # Note: this script only prepares cases_with_feature for datas/.
+    dataset_cases = []
+    for case in sampled_cases:
+        dataset_cases.append(
+            {
+                "id": case["id"],
+                "name": case["name"],
+                "fact": case["fact"],
+                "crime": case["crime"],
+                "laws": case["law"],
+                "term_of_imprisonment": case.get("term_of_imprisonment", {}),
+            }
+        )
+
     write_json(args.cases_output, sampled_cases)
+    write_json(args.dataset_output, dataset_cases)
 
     print(f"Loaded raw cases: {len(raw_cases)}")
     print(f"Sampled cases: {len(sampled_cases)}")
     print(f"Wrote case db file: {args.cases_output}")
+    print(f"Wrote dataset file: {args.dataset_output}")
 
 
 if __name__ == "__main__":
