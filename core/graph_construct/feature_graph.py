@@ -25,15 +25,20 @@ def get_embedding(text):
 
 
 def summarize_texts(model, text):
-    from core.prompt import SUMMARIZE_TEXTS_PROMPT
-    return model.generate_response(SUMMARIZE_TEXTS_PROMPT + "\n**Now process the following input data**: \n" + text, max_length=512).strip()
+    from core.prompt import get_prompt
+    return model.generate_response(
+        get_prompt("SUMMARIZE_TEXTS_PROMPT")
+        + get_prompt("SUMMARIZE_TEXTS_INPUT_PREFIX")
+        + text,
+        max_length=512
+    ).strip()
 
 
 def rerank_clusters(model, clusters, query_text):
-    from core.prompt import RERANK_CLUSTERS_PROMPT_TEMPLATE
+    from core.prompt import get_prompt
     cluster_summaries = "\n".join(
         [f"code{c['code']}：{c['summary']}\n" for c in clusters])
-    prompt = RERANK_CLUSTERS_PROMPT_TEMPLATE.format(
+    prompt = get_prompt("RERANK_CLUSTERS_PROMPT_TEMPLATE").format(
         cluster_summaries=cluster_summaries,
         query_text=query_text
     )
@@ -47,13 +52,13 @@ def rerank_clusters(model, clusters, query_text):
 
 
 def rerank(model, query_text, neighbors):
-    from core.prompt import RERANK_PROMPT_TEMPLATE
+    from core.prompt import get_prompt
     if not neighbors:
         return []
 
     neighbor_summaries = "\n".join(
         [f"code{n['rank']}：{n['description']}\n" for n in neighbors])
-    prompt = RERANK_PROMPT_TEMPLATE.format(
+    prompt = get_prompt("RERANK_PROMPT_TEMPLATE").format(
         neighbor_summaries=neighbor_summaries,
         query_text=query_text
     )

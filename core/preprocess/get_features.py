@@ -1,12 +1,14 @@
 import json
-from core.prompt import GET_FEATURES_PROMPT
+from core.prompt import get_prompt
 
 
 def get_features(model, cases):
     fact = cases["description"]
     name = cases["name"]
 
-    prompt_formatted = GET_FEATURES_PROMPT + "\n被告人姓名：{}\n案件事实：{}".format(name, fact)
+    prompt_formatted = get_prompt("GET_FEATURES_PROMPT") + get_prompt(
+        "GET_FEATURES_INPUT_TEMPLATE"
+    ).format(name=name, fact=fact)
     response = model.generate_response(prompt_formatted)
     first = response.find("{")
     last = response.rfind("}") + 1

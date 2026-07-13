@@ -1,8 +1,8 @@
-from core.prompt import PRE_JUDGE_PROMPT
+from core.prompt import get_prompt
 
 
 def pre_judge(model, case) -> list:
-    prompt_with_case = PRE_JUDGE_PROMPT.format(case_text=case)
+    prompt_with_case = get_prompt("PRE_JUDGE_PROMPT").format(case_text=case)
     response = model.generate_response(prompt_with_case)
     try:
         # 尝试将响应解析为Python列表

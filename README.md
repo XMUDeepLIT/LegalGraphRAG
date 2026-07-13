@@ -108,6 +108,8 @@ python run.py --model qwen3 --datasets CAIL --devices cuda:2 cuda:3
 - `--no-build-graph`: skip graph construction when graph already exists
 - `--force-rebuild`: force graph rebuild even if artifacts already exist
 
+Set `prompt_language=zh` or `prompt_language=en` in `.env` to choose Chinese or English prompts.
+
 ### 4️⃣ Output Files
 
 - Prediction outputs:

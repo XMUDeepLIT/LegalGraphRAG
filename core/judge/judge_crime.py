@@ -1,5 +1,5 @@
 import json
-from core.prompt import JUDGE_CRIME_PROMPT, JUDGE_CRIME_ALL_PROMPT
+from core.prompt import get_prompt
 
 
 def format_law(law_used):
@@ -21,7 +21,7 @@ def format_fact(facts):
 
 def judge_crime(chatbot, law_used, retrieved_facts, case_description):
     response = chatbot.generate_response(
-        JUDGE_CRIME_PROMPT.format(
+        get_prompt("JUDGE_CRIME_PROMPT").format(
             law=format_law(law_used),
             case=case_description
         ),
@@ -40,7 +40,9 @@ def judge_crime(chatbot, law_used, retrieved_facts, case_description):
 
 def judge_crime_all(chatbot, law_used, retrieved_facts, case_description):
     response = chatbot.generate_response(
-        JUDGE_CRIME_ALL_PROMPT + ("输入：\n法条：\n-----\n" + format_law(law_used) + "\n-----\n待判决的案件：\n-----\n" + case_description + "\n-----\n输出："),
+        get_prompt("JUDGE_CRIME_ALL_PROMPT") + get_prompt(
+            "JUDGE_CRIME_ALL_INPUT_TEMPLATE"
+        ).format(law=format_law(law_used), case=case_description),
         max_length=4096
     )
     try:

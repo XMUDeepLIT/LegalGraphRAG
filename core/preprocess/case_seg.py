@@ -1,11 +1,11 @@
 import json
-from core.prompt import CASE_SEG_PROMPT
+from core.prompt import get_prompt
 
 
 def segment_case_text_withname(model, case_text, criminals):
     cases = []
     for name in criminals:
-        prompt2_formatted = CASE_SEG_PROMPT.format(fact=case_text, name=name)
+        prompt2_formatted = get_prompt("CASE_SEG_PROMPT").format(fact=case_text, name=name)
         response2 = model.generate_response(prompt2_formatted, max_length=1024)
         if response2 != "":
             cases.append({"name": name, "description": response2.strip()})

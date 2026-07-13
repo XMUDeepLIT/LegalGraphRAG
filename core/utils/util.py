@@ -7,7 +7,7 @@ from core.judge.judge_law import judge_law
 from core.judge.judge_crime import judge_crime, judge_crime_all
 
 import json
-from core.prompt import RETRIEVE_LAW_PROMPT
+from core.prompt import get_prompt
 
 
 def filter_facts(retrieved_laws, retrieved_facts):
@@ -48,7 +48,7 @@ def retrieve_law(chatbot, case):
     fact = case["description"][:1024]
     name = case["name"]
     response = chatbot.generate_response(
-        RETRIEVE_LAW_PROMPT.format(name=name, fact=fact), max_length=256)
+        get_prompt("RETRIEVE_LAW_PROMPT").format(name=name, fact=fact), max_length=256)
     try:
         first = response.find('[')
         last = response.rfind(']') + 1

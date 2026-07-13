@@ -17,6 +17,7 @@ class ModelConfig:
     """Model configuration"""
     model_name: str = "qwen3"
     device: str = "cuda:0"
+    prompt_language: str = "zh"
     # OpenAI-type model configuration
     api_key: Optional[str] = None
     base_url: Optional[str] = None
@@ -34,6 +35,12 @@ class ModelConfig:
             raise ValueError(
                 f"Invalid model_name: {self.model_name}. "
                 f"Must be one of {valid_models}"
+            )
+        valid_prompt_languages = ["en", "zh", "cn", "chinese", "english"]
+        if self.prompt_language.lower() not in valid_prompt_languages:
+            raise ValueError(
+                f"Invalid prompt_language: {self.prompt_language}. "
+                f"Must be one of {valid_prompt_languages}"
             )
 
 
@@ -106,6 +113,7 @@ class LegalGraphRAGConfig:
         model_config = ModelConfig(
             model_name=os.getenv("model_name", "qwen3"),
             device=os.getenv("device", "cuda:0"),
+            prompt_language=os.getenv("prompt_language", "zh"),
             api_key=os.getenv("api_key"),
             base_url=os.getenv("base_url"),
             max_length=int(os.getenv("max_length", 4096)),
@@ -174,6 +182,7 @@ class LegalGraphRAGConfig:
             "model": {
                 "model_name": self.model.model_name,
                 "device": self.model.device,
+                "prompt_language": self.model.prompt_language,
                 "api_key": self.model.api_key,
                 "base_url": self.model.base_url,
                 "max_length": self.model.max_length,
@@ -219,7 +228,9 @@ class LegalGraphRAG:
             config: Configuration object, if None use default configuration
         """
         self.config = config or LegalGraphRAGConfig()
-        
+        from core.prompt import set_prompt_language
+        set_prompt_language(self.config.model.prompt_language)
+
         # Initialize model
         self.model = self._init_model()
         
@@ -290,7 +301,7 @@ class LegalGraphRAG:
                 f"Case database not found: {self.config.data.case_db_path}"
             )
         with open(self.config.data.case_db_path, "r", encoding="utf-8") as f:
-            return json.load(f)[:100]
+            return json.load(f)
     
     def _load_law_to_crime(self) -> List[Dict[str, Any]]:
         """Load law to crime mapping"""
