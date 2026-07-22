@@ -1,6 +1,6 @@
 # **LegalGraphRAG: Multi-Agent Graph Retrieval-Augmented Generation for Reliable Legal Reasoning**
 
-> An evaluation framework for legal judgment prediction that integrates multi-agent graph retrieval and supports reproducible comparisons across multiple models and baselines.
+> An evaluation framework for legal judgment prediction that integrates multi-agent graph retrieval and provides a reproducible main-experiment pipeline for LegalGraphRAG.
 
 <!-- <p align="center">
   <a href="https://www.researchgate.net/publication/403734810_LegalGraphRAG_Multi-Agent_Graph_Retrieval-Augmented_Generation_for_Reliable_Legal_Reasoning" target="_blank">
@@ -14,10 +14,11 @@
 ---
 
 ## 🚀 **Highlights**
-- ✅ **Automated Evaluation**: Computes `Accuracy (Acc)` and `Micro-F1` automatically for legal judgment prediction tasks.
+
+- ✅ **Automated Evaluation**: Computes charge, law-article, and imprisonment metrics for the main LegalGraphRAG experiment.
 - ✅ **Multi-Model Support**: Supports Qwen, DeepSeek, GPT, InternLM, GLM, Gemma, and more.
 - ✅ **Dataset Coverage**: Includes legal datasets such as CAIL and CMDL.
-- ✅ **Baseline Comparison**: Enables direct comparison with `HippoRAG2`, `RAPTOR`, `LightRAG`, `LegalΔ`, and `ADAPT`.
+- ✅ **Main Experiment Assets**: Includes the 14,049-case graph corpus and the 568-case CAIL evaluation set used by the main experiment.
 
 <p align="center">
   <img src="images/method.png" width="95%" alt="Framework Overview">
@@ -42,6 +43,9 @@ LegalGraphRAG/
 ├── scripts/                   # Data preparation scripts
 ├── raw_data/                  # User-provided source files for preprocessing
 ├── datas/                     # Generated preprocessing outputs
+│   └── main_experiment/       # Main experiment graph corpus and evaluation assets
+├── configs/                   # Reproduction configuration files
+├── evaluation/                # Metric scripts for generated outputs
 ├── run.py                     # Main evaluation script
 ├── env.example                # Configuration file template
 └── README.md                  # Project documentation
@@ -50,6 +54,90 @@ LegalGraphRAG/
 ---
 
 ## 🛠️ **Usage**
+
+### 0️⃣ Reproduce the Main Experiment
+
+The main experiment uses:
+
+- Graph/case corpus: `datas/main_experiment/cases_with_feature_big.json` with 14,049 cases.
+- CAIL evaluation set: `datas/main_experiment/crime_data_CAIL_small.json` with 568 cases.
+- CMDL evaluation set: `datas/main_experiment/crime_data_CMDL_small.json` with 1,374 per-defendant records.
+- Criminal law resource: `datas/main_experiment/criminal_law_processed.json`.
+- Crime-category metadata: `datas/main_experiment/crimes_by_part.json`.
+- Reproduction config: `configs/main.env`.
+
+`datas/cases_with_feature.json` is only a small demonstration corpus. The
+14,049-case Table 2 corpus, its source-ID manifest, construction commands, and
+the CAIL/CMDL evaluation protocol are documented in
+[Table 2 Data and Evaluation](docs/TABLE2_REPRODUCTION.md).
+Manual corpus review also used
+[LeCaRDv2](https://github.com/THUIR/LeCaRDv2) as a reference and incorporated
+a small amount of supplementary data from it.
+
+Install the declared dependencies and verify the bundled experiment assets:
+
+```bash
+pip install -r requirements.txt
+cd datas/main_experiment && sha256sum -c SHA256SUMS && cd ../..
+```
+
+Use Python 3.10 or newer. The Qwen3 main run requires a CUDA-capable environment with PyTorch 2.6+, Transformers 4.51+, and enough memory to load one `Qwen/Qwen3-8B` copy per worker.
+
+Before running, make sure the embedding service is available:
+
+```bash
+curl http://localhost:11434/api/embed \
+  -d '{"model":"bge-m3","input":"test"}'
+```
+
+The default embedding endpoint is `http://localhost:11434/api/embed` and the default embedding model is `bge-m3`. Both values are configurable in `configs/main.env` and are used by graph construction and retrieval.
+
+Run LegalGraphRAG on the main CAIL experiment:
+
+```bash
+python run.py \
+  --model qwen3 \
+  --datasets CAIL \
+  --dotenv_path configs/main.env \
+  --devices cuda:0 cuda:1 \
+  --force-rebuild
+```
+
+The graph is saved to `./outputs/main_experiment/qwen3_graph_db.pkl`. Subsequent runs can skip graph construction:
+
+```bash
+python run.py \
+  --model qwen3 \
+  --datasets CAIL \
+  --dotenv_path configs/main.env \
+  --devices cuda:0 cuda:1 \
+  --no-build-graph
+```
+
+If you change the model used for graph construction, use `--force-rebuild` or set a different `graph_db_path` in the config.
+
+Evaluate the generated result file:
+
+```bash
+python evaluation/evaluate_results.py \
+  --results outputs/main_experiment/CAIL/qwen3_results_combined.json \
+  --crimes-by-part datas/main_experiment/crimes_by_part.json
+```
+
+This writes:
+
+- `outputs/main_experiment/CAIL/qwen3_results_combined_metrics.json`
+- `outputs/main_experiment/CAIL/qwen3_results_combined_metrics.csv`
+
+The evaluation script reports:
+
+- Charge prediction: exact-match accuracy and Micro-F1.
+- Law article prediction: exact-match accuracy and Micro-F1.
+- Term prediction: exact match and mean absolute error in months.
+
+These metrics follow the paper scripts' aggregation: charge and law predictions are evaluated per entry in `judge_res`, while imprisonment uses the first judgment for each of the 568 cases.
+
+Baseline systems such as HippoRAG2, RAPTOR, LightRAG, LegalDelta, and ADAPT are not included in this repository. Their outputs can still be compared externally if converted to the same result schema.
 
 ### 1️⃣ Environment Setup
 
@@ -62,11 +150,11 @@ cp env.example .env
 # Edit .env with model paths, API keys, and runtime settings
 ```
 
-### 2️⃣ Data Preparation (CAIL Example)
+### 2️⃣ Data Preparation (Small CAIL Example)
 
 Put these source files under `./raw_data/`:
 
-- `final_test.json`: raw CAIL case records used to build the case corpus.
+- `final_test.json`: raw CAIL case records used for this small example.
 - `law_to_crime.json`: base mapping from law article ids to candidate crimes.
 - `criminal_law_processed.json`: structured criminal law articles (article id + item texts).
 - `judicial_explanations.json`: judicial interpretation snippets linked to law article ids.
@@ -86,11 +174,15 @@ This pipeline does four things in order:
 - Uses an LLM to generate law judgment dependency hints.
 - Merges law resources into final project-ready law mapping data.
 
-After these steps, make sure both files exist:
+After these steps, make sure these files exist:
 
 - `datas/cases_with_feature.json`
 - `datasets/crime_data_CAIL_small.json`
 - `datas/law_to_crime.json`
+
+This example pipeline does not construct the historical 14,049-case Table 2
+corpus. See [Table 2 Data and Evaluation](docs/TABLE2_REPRODUCTION.md) for that
+corpus and its construction scripts.
 
 ### 3️⃣ Run Evaluation
 
@@ -109,6 +201,7 @@ python run.py --model qwen3 --datasets CAIL --devices cuda:2 cuda:3
 - `--force-rebuild`: force graph rebuild even if artifacts already exist
 
 Set `prompt_language=zh` or `prompt_language=en` in `.env` to choose Chinese or English prompts.
+For multiprocessing runs, `graph_db_path` must point to a writable file so worker processes can load the graph database. If it is omitted, `run.py` automatically writes one under the configured output directory.
 
 ### 4️⃣ Output Files
 
@@ -124,11 +217,13 @@ Example output summary:
   "model_name": "qwen3",
   "dataset": "CAIL",
   "total_cases": 1000,
-  "correct_count": 850,
+  "correct_count": 0,
   "elapsed_time": 3600.0,
   "output_file": "./outputs/CAIL/qwen3_results_combined.json"
 }
 ```
+
+`correct_count` is retained for compatibility and is not the paper metric. Use `evaluation/evaluate_results.py` for charge, law article, and imprisonment metrics.
 
 ---
 

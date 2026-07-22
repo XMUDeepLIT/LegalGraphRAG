@@ -5,23 +5,36 @@ from .graph_db import GraphDBManager
 from tqdm import tqdm
 
 
+_embedding_api_url = "http://localhost:11434/api/embed"
+_embedding_model = "bge-m3"
+
+
+def configure_embedding(api_url=None, model=None):
+    """Configure the embedding backend used by graph construction and retrieval."""
+    global _embedding_api_url, _embedding_model
+    if api_url:
+        _embedding_api_url = api_url
+    if model:
+        _embedding_model = model
+
+
 def get_embedding(text):
-    url = "http://localhost:11434/api/embed"
     data = {
-        "model": "bge-m3",
+        "model": _embedding_model,
         "input": text
     }
 
-    response = requests.post(url, json=data)
+    response = requests.post(_embedding_api_url, json=data, timeout=120)
+    response.raise_for_status()
+    result = response.json()
 
-    if response.status_code == 200:
-        result = response.json()
-    else:
-        print(f"Error: {response.status_code}")
-        print(response.text)
-        return None
-
-    return result.get('embeddings', [[]])[0]
+    embeddings = result.get('embeddings')
+    if not embeddings or not embeddings[0]:
+        raise ValueError(
+            f"Embedding backend returned no vectors: {_embedding_api_url} "
+            f"(model={_embedding_model})"
+        )
+    return embeddings[0]
 
 
 def summarize_texts(model, text):

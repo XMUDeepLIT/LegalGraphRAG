@@ -107,7 +107,8 @@ class LegalGraphRAGConfig:
             LegalGraphRAGConfig instance
         """
         from dotenv import load_dotenv
-        load_dotenv(dotenv_path=dotenv_path)
+        # The selected experiment file is authoritative over inherited shell values.
+        load_dotenv(dotenv_path=dotenv_path, override=True)
         
         # Model configuration
         model_config = ModelConfig(
@@ -229,7 +230,12 @@ class LegalGraphRAG:
         """
         self.config = config or LegalGraphRAGConfig()
         from core.prompt import set_prompt_language
+        from core.graph_construct.feature_graph import configure_embedding
         set_prompt_language(self.config.model.prompt_language)
+        configure_embedding(
+            api_url=self.config.graph.embedding_api_url,
+            model=self.config.graph.embedding_model
+        )
 
         # Initialize model
         self.model = self._init_model()

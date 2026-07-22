@@ -6,7 +6,7 @@ import multiprocessing
 import time
 from typing import List, Dict, Any, Optional
 
-from core.LegalGraphRAG import LegalGraphRAG, LegalGraphRAGConfig, ModelConfig, DataConfig
+from core.LegalGraphRAG import LegalGraphRAG, LegalGraphRAGConfig
 
 
 def load_test_cases(datasets: str, datasets_path: str = "./datasets") -> List[Dict[str, Any]]:
@@ -32,6 +32,9 @@ def process_cases_worker(
     
     config.model.device = device
     config.model.model_name = model_name
+    # Workers load the graph read-only; the parent process owns persistence.
+    config.graph.auto_build = False
+    config.graph.auto_save = False
     
     rag = LegalGraphRAG(config=config)
     
@@ -82,6 +85,11 @@ def run_evaluation(
     
     output_dir = os.path.join(config.data.output_dir, datasets)
     os.makedirs(output_dir, exist_ok=True)
+    if datasets_path == "./datasets" and config.data.datasets_path:
+        datasets_path = config.data.datasets_path
+    if not config.graph.graph_db_path:
+        config.graph.graph_db_path = os.path.join(output_dir, f"{model_name}_graph_db.pkl")
+        print(f"graph_db_path not configured; using {config.graph.graph_db_path}")
     
     # Build graph before starting parallel processes
     if build_graph:
@@ -99,6 +107,8 @@ def run_evaluation(
         build_config = LegalGraphRAGConfig.from_dict(config.to_dict())
         build_config.model.device = build_device
         build_config.model.model_name = model_name
+        # run_evaluation controls graph construction explicitly below.
+        build_config.graph.auto_build = False
         
         # Create LegalGraphRAG instance and build graph
         print(f"Using device {build_device} for graph construction...")
@@ -116,6 +126,11 @@ def run_evaluation(
         print("Graph database ready!")
         print("="*60)
         print()
+    elif not os.path.exists(config.graph.graph_db_path):
+        raise FileNotFoundError(
+            f"Graph database not found: {config.graph.graph_db_path}. "
+            "Run without --no-build-graph first."
+        )
     
     test_cases = load_test_cases(datasets, datasets_path)
     print(f"Loaded {len(test_cases)} test cases from {datasets} dataset")
@@ -143,7 +158,7 @@ def run_evaluation(
     time_before = time.time()
     
     for i, chunk in enumerate(chunks):
-        output_file = f"{model_name}_results_part_{i}.json"
+        output_file = os.path.join(output_dir, f"{model_name}_results_part_{i}.json")
         async_results.append(
             pool.apply_async(
                 process_cases_worker,
@@ -180,7 +195,7 @@ def run_evaluation(
     
     combined_results = []
     for i in range(len(chunks)):
-        part_file = f"{model_name}_results_part_{i}.json"
+        part_file = os.path.join(output_dir, f"{model_name}_results_part_{i}.json")
         if os.path.exists(part_file):
             with open(part_file, "r", encoding="utf-8") as f:
                 part_data = json.load(f)

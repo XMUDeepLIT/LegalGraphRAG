@@ -1,0 +1,33 @@
+{
+  "corpus": "cases_with_feature_big.json",
+  "total_cases": 14049,
+  "id_assignment": "Sequential string IDs after concatenating CAIL, JuDGE, and CMDL in that order.",
+  "supplementary_source_note": "LeCaRDv2 was used during manual corpus review, and a small amount of its data was incorporated without separate source-ID tags: https://github.com/THUIR/LeCaRDv2",
+  "sources": [
+    {
+      "dataset": "CAIL",
+      "repository": "https://github.com/thunlp/CAIL",
+      "source_split": "test.json",
+      "first_case_id": "1",
+      "last_case_id": "3512",
+      "count": 3512
+    },
+    {
+      "dataset": "JuDGE",
+      "repository": "https://github.com/oneal2000/JuDGE",
+      "source_split": "filtered_ext_all.jsonl",
+      "first_case_id": "3513",
+      "last_case_id": "9264",
+      "count": 5752
+    },
+    {
+      "dataset": "CMDL",
+      "repository": "https://github.com/littlebowlnju/CMDL",
+      "source_split": "train_small.jsonl",
+      "first_case_id": "9265",
+      "last_case_id": "14049",
+      "count": 4785,
+      "note": "Multi-defendant judgments were split into one record per defendant."
+    }
+  ]
+}
