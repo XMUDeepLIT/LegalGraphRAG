@@ -129,6 +129,11 @@ This writes:
 - `outputs/main_experiment/CAIL/qwen3_results_combined_metrics.json`
 - `outputs/main_experiment/CAIL/qwen3_results_combined_metrics.csv`
 
+To read the Table 2 results, open the `_metrics.csv` file and use the row with
+`scope=overall`. The Accuracy and Micro-F1 columns reported in Table 2 are
+`charge_accuracy` and `charge_micro_f1`, respectively. The CMDL metrics are
+written to the corresponding `outputs/main_experiment/CMDL/` directory.
+
 The evaluation script reports:
 
 - Charge prediction: exact-match accuracy and Micro-F1.
