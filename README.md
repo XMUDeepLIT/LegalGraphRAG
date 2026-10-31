@@ -46,6 +46,9 @@ LegalGraphRAG/
 │   └── main_experiment/       # Main experiment graph corpus and evaluation assets
 ├── configs/                   # Reproduction configuration files
 ├── evaluation/                # Metric scripts for generated outputs
+├── baselines/                 # Table 2 baselines
+│   ├── direct/                # One prompt per defendant
+│   └── retrieval/             # naive, HippoRAG 2, LightRAG, RAPTOR, DIGIMON
 ├── run.py                     # Main evaluation script
 ├── env.example                # Configuration file template
 └── README.md                  # Project documentation
@@ -66,12 +69,12 @@ The main experiment uses:
 - Crime-category metadata: `datas/main_experiment/crimes_by_part.json`.
 - Reproduction config: `configs/main.env`.
 
-`datas/cases_with_feature.json` is only a small demonstration corpus. The
-14,049-case Table 2 corpus, its source-ID manifest, construction commands, and
-the CAIL/CMDL evaluation protocol are documented in
+`datas/cases_with_feature.json` is the small demonstration corpus. The
+14,049-case Table 2 corpus, its source manifest, construction commands, and
+the CAIL/CMDL evaluation protocol are in
 [Table 2 Data and Evaluation](docs/TABLE2_REPRODUCTION.md).
-Manual corpus review also used
-[LeCaRDv2](https://github.com/THUIR/LeCaRDv2) as a reference and incorporated
+Manual corpus review used
+[LeCaRDv2](https://github.com/THUIR/LeCaRDv2) as a reference and included
 a small amount of supplementary data from it.
 
 Install the declared dependencies and verify the bundled experiment assets:
@@ -140,9 +143,21 @@ The evaluation script reports:
 - Law article prediction: exact-match accuracy and Micro-F1.
 - Term prediction: exact match and mean absolute error in months.
 
-These metrics follow the paper scripts' aggregation: charge and law predictions are evaluated per entry in `judge_res`, while imprisonment uses the first judgment for each of the 568 cases.
+Charge and law predictions are scored once per entry in `judge_res`. Imprisonment uses the first judgment of each of the 568 CAIL cases.
 
-Baseline systems such as HippoRAG2, RAPTOR, LightRAG, LegalDelta, and ADAPT are not included in this repository. Their outputs can still be compared externally if converted to the same result schema.
+### Baseline protocols
+
+The comparison models live under `baselines/`. Direct models are one file per role in `baselines/direct/`. Each retrieval system is one file in `baselines/retrieval/`. Prompts are in `baselines/prompts.py`. The per-protocol decoding, retrieval depth, and output field are in [Table 2 Baselines](docs/BASELINES.md).
+
+```bash
+python -m baselines.run --list
+python -m baselines.run --model qwen3 --dataset CAIL --devices cuda:0
+python -m baselines.run --protocol naive_rag --dataset CAIL
+python -m baselines.run --protocol raptor --model deepseek_v3 --dataset CAIL
+DIGIMON_HOME=/path/to/GraphRAG python -m baselines.run --protocol gretriever --dataset CAIL
+```
+
+Result files are written to `outputs/{dataset}/`. Score one with `evaluation/evaluate_results.py`. The charge prediction is `judge_result.charge_name` or `judge_res[].crime`.
 
 ### 1️⃣ Environment Setup
 
@@ -185,14 +200,15 @@ After these steps, make sure these files exist:
 - `datasets/crime_data_CAIL_small.json`
 - `datas/law_to_crime.json`
 
-This example pipeline does not construct the historical 14,049-case Table 2
-corpus. See [Table 2 Data and Evaluation](docs/TABLE2_REPRODUCTION.md) for that
-corpus and its construction scripts.
+The 14,049-case Table 2 corpus and its construction scripts are in
+[Table 2 Data and Evaluation](docs/TABLE2_REPRODUCTION.md).
 
 ### 3️⃣ Run Evaluation
 
+`env.example` and `configs/main.env` set `case_db_path` to `datas/main_experiment/cases_with_feature_big.json`, `law_to_crime_path` to `datas/main_experiment/criminal_law_processed.json`, `datasets_path` to `datas/main_experiment`, and both `community_expansion_top_k` and `semantic_match_top_k` to 5.
+
 ```bash
-python run.py --model qwen3 --datasets CAIL --devices cuda:2 cuda:3
+python run.py --model qwen3 --datasets CAIL --dotenv_path .env --devices cuda:2 cuda:3
 ```
 
 **Main arguments**
@@ -200,7 +216,7 @@ python run.py --model qwen3 --datasets CAIL --devices cuda:2 cuda:3
 - `--model`: `qwen3`, `qwen2_5`, `gemma3`, `internlm3`, `glm4`, `deepseek_v3`, `gpt4o_mini`
 - `--datasets`: dataset name, e.g. `CAIL`, `CMDL`
 - `--dotenv_path`: path to `.env` (default: `.env`)
-- `--datasets_path`: path to datasets (default: `./datasets`)
+- `--datasets_path`: evaluation directory. When omitted, `run.py` reads `datasets_path` from the env file: `datas/main_experiment`.
 - `--devices`: GPU devices, e.g. `cuda:0 cuda:1`
 - `--no-build-graph`: skip graph construction when graph already exists
 - `--force-rebuild`: force graph rebuild even if artifacts already exist
@@ -228,7 +244,7 @@ Example output summary:
 }
 ```
 
-`correct_count` is retained for compatibility and is not the paper metric. Use `evaluation/evaluate_results.py` for charge, law article, and imprisonment metrics.
+Charge, law-article, and imprisonment metrics are in the files written by `evaluation/evaluate_results.py`.
 
 ---
 
@@ -264,3 +280,15 @@ python run.py --model qwen3 --datasets CAIL --devices cuda:0 cuda:1 cuda:2 cuda:
 ```
 
 Cases are automatically distributed across the selected devices.
+
+## 🍀 Citation
+
+```bibtex
+@inproceedings{chen2026legalgraphrag,
+  title={LegalGraphRAG: Multi-Agent Graph Retrieval-Augmented Generation for Reliable Legal Reasoning},
+  author={Chen, Zerui and Zhang, Qinggang and Xiang, Zhishang and Wei, Zhimin and Gao, Linfeng and Huang, Xiao and Zhang, Zhihong and Su, Jinsong},
+  booktitle={Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  pages={37455--37484},
+  year={2026}
+}
+```

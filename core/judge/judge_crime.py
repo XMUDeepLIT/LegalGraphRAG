@@ -2,9 +2,9 @@ import json
 from core.prompt import get_prompt
 
 
-def format_law(law_used):
+def format_articles(verified_articles):
     res = ""
-    for law in law_used:
+    for law in verified_articles:
         law["crimes"] = law.get("crimes", [])
         crimes = [c.replace("\n", " ") for c in law["crimes"] if c]
         res += f"触犯法条 {law['entry']}，该法条可判：{', '.join(crimes)}, 具体内容为：{law['description']}\n---\n"
@@ -22,7 +22,7 @@ def format_fact(facts):
 def judge_crime(chatbot, law_used, retrieved_facts, case_description):
     response = chatbot.generate_response(
         get_prompt("JUDGE_CRIME_PROMPT").format(
-            law=format_law(law_used),
+            law=format_articles(law_used),
             case=case_description
         ),
         max_length=4096
@@ -38,11 +38,11 @@ def judge_crime(chatbot, law_used, retrieved_facts, case_description):
     response = [str(x).strip() for x in response if str(x).strip()]
     return response
 
-def judge_crime_all(chatbot, law_used, retrieved_facts, case_description):
+def synthesize_judgment(chatbot, verified_articles, verified_cases, case_description):
     response = chatbot.generate_response(
         get_prompt("JUDGE_CRIME_ALL_PROMPT") + get_prompt(
             "JUDGE_CRIME_ALL_INPUT_TEMPLATE"
-        ).format(law=format_law(law_used), case=case_description),
+        ).format(law=format_articles(verified_articles), case=case_description),
         max_length=4096
     )
     try:

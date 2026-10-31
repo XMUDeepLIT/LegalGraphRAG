@@ -12,7 +12,7 @@ class BaseModel(ABC):
         
         Args:
             model_name: Model name
-            device: Device (may not be used for OpenAI type)
+            device: Device string stored on the model
         """
         self.model_name = model_name
         self.device = device

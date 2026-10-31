@@ -1,7 +1,6 @@
 """Evaluate LegalGraphRAG main experiment outputs.
 
-The script accepts both the current result format produced by run.py and the
-legacy Table 2 format, where predictions are stored in ``judge_res[].crime``.
+Predictions are read from ``judge_result.charge_name`` or ``judge_res[].crime``.
 
 [
   {

@@ -47,10 +47,10 @@ class ModelConfig:
 @dataclass
 class DataConfig:
     """Data path configuration"""
-    case_db_path: str = "./datas/cases_with_feature.json"
-    law_to_crime_path: str = "./datas/law_to_crime.json"
-    datasets_path: Optional[str] = None  # Dataset root directory
-    output_dir: str = "./outputs"
+    case_db_path: str = "./datas/main_experiment/cases_with_feature_big.json"
+    law_to_crime_path: str = "./datas/main_experiment/criminal_law_processed.json"
+    datasets_path: Optional[str] = "./datas/main_experiment"
+    output_dir: str = "./outputs/main_experiment"
     
     def __post_init__(self):
         """Create output directory"""
@@ -59,21 +59,21 @@ class DataConfig:
 
 @dataclass
 class RetrieveConfig:
-    """Retrieval configuration"""
-    top_retrieve: bool = True
-    direct_retrieve: bool = True
-    augment_retrieve: bool = True
-    top_retrieve_top_k: int = 3
-    direct_retrieve_top_k: int = 3
+    """The three Researcher operators: R_com, R_sem, and R_chg."""
+    community_expansion: bool = True
+    semantic_match: bool = True
+    charge_anchored: bool = True
+    community_expansion_top_k: int = 5
+    semantic_match_top_k: int = 5
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format"""
         return {
-            "top_retrieve": self.top_retrieve,
-            "direct_retrieve": self.direct_retrieve,
-            "augment_retrieve": self.augment_retrieve,
-            "top_retrieve_top_k": self.top_retrieve_top_k,
-            "direct_retrieve_top_k": self.direct_retrieve_top_k
+            "community_expansion": self.community_expansion,
+            "semantic_match": self.semantic_match,
+            "charge_anchored": self.charge_anchored,
+            "community_expansion_top_k": self.community_expansion_top_k,
+            "semantic_match_top_k": self.semantic_match_top_k
         }
 
 
@@ -107,7 +107,6 @@ class LegalGraphRAGConfig:
             LegalGraphRAGConfig instance
         """
         from dotenv import load_dotenv
-        # The selected experiment file is authoritative over inherited shell values.
         load_dotenv(dotenv_path=dotenv_path, override=True)
         
         # Model configuration
@@ -123,19 +122,18 @@ class LegalGraphRAGConfig:
         
         # Data configuration
         data_config = DataConfig(
-            case_db_path=os.getenv("case_db_path", "./datas/cases_with_feature.json"),
-            law_to_crime_path=os.getenv("law_to_crime_path", "./datas/law_to_crime.json"),
-            datasets_path=os.getenv("datasets_path"),
-            output_dir=os.getenv("output_dir", "./outputs")
+            case_db_path=os.getenv("case_db_path", "./datas/main_experiment/cases_with_feature_big.json"),
+            law_to_crime_path=os.getenv("law_to_crime_path", "./datas/main_experiment/criminal_law_processed.json"),
+            datasets_path=os.getenv("datasets_path", "./datas/main_experiment"),
+            output_dir=os.getenv("output_dir", "./outputs/main_experiment")
         )
         
-        # Retrieval configuration
         retrieve_config = RetrieveConfig(
-            top_retrieve=os.getenv("top_retrieve", "True") == "True",
-            direct_retrieve=os.getenv("direct_retrieve", "True") == "True",
-            augment_retrieve=os.getenv("augment_retrieve", "True") == "True",
-            top_retrieve_top_k=int(os.getenv("top_retrieve_top_k", 3)),
-            direct_retrieve_top_k=int(os.getenv("direct_retrieve_top_k", 3))
+            community_expansion=os.getenv("community_expansion", "True") == "True",
+            semantic_match=os.getenv("semantic_match", "True") == "True",
+            charge_anchored=os.getenv("charge_anchored", "True") == "True",
+            community_expansion_top_k=int(os.getenv("community_expansion_top_k", "5")),
+            semantic_match_top_k=int(os.getenv("semantic_match_top_k", "5"))
         )
         
         # Graph configuration
@@ -375,7 +373,7 @@ class LegalGraphRAG:
         GraphDBManager.load(load_path)
         print(f"Graph database loaded from {load_path}")
     
-    def _concat_feature_descriptions(self, description: Dict[str, Any]) -> str:
+    def _ontology_feature_text(self, description: Dict[str, Any]) -> str:
         """
         Concatenate feature descriptions
         
@@ -408,30 +406,15 @@ class LegalGraphRAG:
         law_nodes_data = []
         crime_nodes_data = []
         
-        # Process case nodes
         for case in tqdm(self.cases_db, desc="Preparing case nodes"):
-            # Check if features field exists (new format) or use fact directly (old format)
-            if "features" in case:
-                features = case["features"]
-                # Check if criminal_acts field exists
-                if features.get("criminal_acts") and len(features.get("criminal_acts", [])) > 0:
-                    description = self._concat_feature_descriptions(features)
-                    case_nodes_data.append({
-                        'id': str(uuid.uuid4()),
-                        'description': description,
-                        'caseId': case.get("id", ""),
-                        'crime': case.get("crime", []),
-                        'law': case.get("law", []),
-                        'type': 'case'
-                    })
-            elif "fact" in case:
-                # Old format: use fact directly as description
+            features = case.get("features") or {}
+            if features.get("criminal_acts"):
                 case_nodes_data.append({
                     'id': str(uuid.uuid4()),
-                    'description': case.get("fact", ""),
+                    'description': self._ontology_feature_text(features),
                     'caseId': case.get("id", ""),
                     'crime': case.get("crime", []),
-                    'law': case.get("laws", case.get("law", [])),
+                    'law': case.get("law", []),
                     'type': 'case'
                 })
         
@@ -501,7 +484,7 @@ class LegalGraphRAG:
         Args:
             force_rebuild: If True, rebuild even if graph database already exists
         """
-        from core.graph_construct.feature_graph import construct_feature_graph
+        from core.graph_construct.feature_graph import construct_hierargraph
         
         # Check if graph database already exists
         if not force_rebuild and self.config.graph.graph_db_path and os.path.exists(self.config.graph.graph_db_path):
@@ -519,7 +502,7 @@ class LegalGraphRAG:
               f"{len(nodes_data['crime'])} crime nodes")
         
         # Build graph structure
-        construct_feature_graph(self.model, nodes_data)
+        construct_hierargraph(self.model, nodes_data)
         
         # Save graph database
         if self.config.graph.graph_db_path:

@@ -257,7 +257,7 @@ if __name__ == "__main__":
         "--datasets_path",
         type=str,
         default=None,
-        help="Path to datasets directory (default: ./datasets)",
+        help="Evaluation directory. Defaults to datasets_path in the env file.",
     )
     parser.add_argument(
         "--devices",

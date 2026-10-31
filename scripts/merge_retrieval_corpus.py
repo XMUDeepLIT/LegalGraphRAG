@@ -144,8 +144,7 @@ def main() -> None:
         ),
         "supplementary_source_note": (
             "LeCaRDv2 was used during manual corpus review, and a small amount "
-            "of its data was incorporated without separate source-ID tags: "
-            "https://github.com/THUIR/LeCaRDv2"
+            "of its data is included: https://github.com/THUIR/LeCaRDv2"
         ),
         "sources": manifest_sources,
     }

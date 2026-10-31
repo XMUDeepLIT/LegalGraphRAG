@@ -22,7 +22,7 @@ class OpenAIBaseModel(BaseModel):
         
         Args:
             model_name: Model name
-            device: Device (not used for OpenAI type, kept for interface consistency)
+            device: Device string stored on the model
             api_key: API key, if None then get from environment variable
             base_url: API base URL
             env_api_key_name: API key name in environment variable

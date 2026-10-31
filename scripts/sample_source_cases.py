@@ -157,7 +157,7 @@ def main() -> None:
         "--boundary",
         choices=["historical", "inclusive"],
         default="historical",
-        help="historical reproduces the original count < limit condition.",
+        help="historical keeps a charge while count < limit; inclusive uses count <= limit.",
     )
     parser.add_argument(
         "--exclude-test",

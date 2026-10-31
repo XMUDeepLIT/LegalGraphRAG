@@ -47,9 +47,10 @@ ENV/
 env/
 .venv
 
-# IDEs
+# IDEs and local agent files
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 *~
