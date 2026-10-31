@@ -2,7 +2,7 @@
   "corpus": "cases_with_feature_big.json",
   "total_cases": 14049,
   "id_assignment": "Sequential string IDs after concatenating CAIL, JuDGE, and CMDL in that order.",
-  "supplementary_source_note": "LeCaRDv2 was used during manual corpus review, and a small amount of its data was incorporated without separate source-ID tags: https://github.com/THUIR/LeCaRDv2",
+  "supplementary_source_note": "LeCaRDv2 was used during manual corpus review, and a small amount of its data is included: https://github.com/THUIR/LeCaRDv2",
   "sources": [
     {
       "dataset": "CAIL",
